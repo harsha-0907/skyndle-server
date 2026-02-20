@@ -1,0 +1,11 @@
+# Dev environment
+pip
+autopep8
+
+# App
+fastapi[standard]
+pyjwt
+requests
+boto3
+aiofiles
+pysqlite3

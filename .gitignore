@@ -1,0 +1,7 @@
+__pycache__/
+.venv/
+.idx/
+*.sh
+temp*
+.env
+personal/
