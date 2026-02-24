@@ -1,7 +1,10 @@
 
-from sqlalchemy import Column, Integer, String, TIMESTAMP, ForeignKey
+import logging
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Integer, String, TIMESTAMP, ForeignKey
 
+logger = logging.getLogger(__name__)
 Base = declarative_base()
 
 class Users(Base):
@@ -36,3 +39,16 @@ class URLs(Base):
     path = Column(String(100), nullable=False)
     domain_id = Column(Integer, ForeignKey("domains.domain_id", ondelete="CASCADE"))
 
+def get_db_session(request):
+    """ Returns a db session object """
+    db_obj = request.app.state.var.db
+    engine = db_obj.engine
+    if engine is None:
+        from sqlalchemy import create_engine
+        logger.warning("DB engine created again. (Has to be done only once)")
+        engine = create_engine(db_obj.db_host, echo=True)
+        db_obj.engine = engine
+    SessionLocal = sessionmaker(bind=engine, autoflush=True, autocommit=False)
+    session = SessionLocal()
+    yield session
+    session.close()
