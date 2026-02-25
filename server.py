@@ -3,6 +3,8 @@ import logging
 from fastapi import FastAPI
 from utils.lifespan import initialize_server, shutdown_server
 from contextlib import asynccontextmanager
+from routes.auth import router as auth_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -28,8 +30,7 @@ async def lifespan(app: FastAPI):
 logger = logging.getLogger(__name__)
 app = FastAPI(lifespan=lifespan)
 
-
-
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 @app.get("/")
 async def root():

@@ -2,6 +2,7 @@
 import logging
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
+from fastapi import Request
 from sqlalchemy import Column, Integer, String, TIMESTAMP, ForeignKey
 
 logger = logging.getLogger(__name__)
@@ -20,8 +21,8 @@ class Credentials(Base):
 
     email = Column(String(50), ForeignKey("users.email", ondelete="CASCADE"), primary_key=True)
     password = Column(String(16), nullable=False)
-    reset_key = Column(String(16), unique=True, nullable=False)
-    valid_upto = Column(TIMESTAMP)
+    reset_key = Column(String(16), unique=True)
+    valid_upto = Column(TIMESTAMP, nullable=True)
 
 class Domains(Base):
     __tablename__ = "domains"
@@ -39,7 +40,7 @@ class URLs(Base):
     path = Column(String(100), nullable=False)
     domain_id = Column(Integer, ForeignKey("domains.domain_id", ondelete="CASCADE"))
 
-def get_db_session(request):
+def get_db_session(request: Request):
     """ Returns a db session object """
     db_obj = request.app.state.var.db
     engine = db_obj.engine

@@ -9,3 +9,4 @@ requests
 boto3
 aiofiles
 pysqlite3
+pyjwt
