@@ -1,6 +1,7 @@
 
 import jwt
 import time
+from datetime import datetime, timedelta
 from enum import Enum
 from datamodels.variables import fetch_key_from_env
 
@@ -14,8 +15,8 @@ JWT_SECRET_KEY = fetch_key_from_env("jwt_secret_key") or "a-string-secret-at-lea
 def encode_jwt(data_to_encode: dict, expires_in: int = 3600):
     """ Encode a dictionary into a JWT token"""
 
-    time_now = int(time.time())
-    valid_upto = time_now + expires_in
+    time_now = datetime.utcnow()
+    valid_upto = time_now + timedelta(seconds=expires_in)
     payload = data_to_encode.copy()
     payload["exp"] = valid_upto
 

@@ -1,6 +1,6 @@
 
 import aiofiles
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from datamodels.db import get_db_session, Credentials, Users
 from utils.jwt_utils import encode_jwt, decode_jwt
@@ -35,7 +35,8 @@ def login_user(session=Depends(get_db_session), credentials: LoginCredentials = 
         return JSONResponse(content={"message": "Invalid Credentials"}, status_code=401)
     
     # Valid Credentials
-    reset_jwt_key = encode_jwt({"reset_key": generate_id()}, expires_in=86400*7)
+    reset_key = generate_id()
+    reset_jwt_key = encode_jwt({"reset_key": reset_key}, expires_in=86400*7)
 
     payload = {
         "session_id": generate_id(),
@@ -50,6 +51,10 @@ def login_user(session=Depends(get_db_session), credentials: LoginCredentials = 
         httponly=True,
         samesite="lax"
     )
+
+    user_credential.reset_key = reset_key
+    user_credential.valid_upto = datetime.utcnow() + timedelta(days=7)
+    session.commit()
 
     return response
 
