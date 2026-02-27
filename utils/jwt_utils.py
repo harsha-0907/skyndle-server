@@ -31,7 +31,8 @@ def decode_jwt(jwt_token: str):
         return JWTStatus.OK, decoded_data
 
     except jwt.ExpiredSignatureError:
-        return JWTStatus.EXPIRED, None
+        decoded_data = jwt.decode(jwt_token, JWT_SECRET_KEY, algorithms=["HS256"], options={"verify_exp": False})
+        return JWTStatus.EXPIRED, decoded_data
 
     except (jwt.InvalidIssuerError, jwt.InvalidTokenError):
         return JWTStatus.INVALID, None
