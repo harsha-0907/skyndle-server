@@ -1,6 +1,10 @@
 
+import logging
 from uuid import uuid4
+from urllib.parse import urlparse
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
+
+logger = logging.getLogger(__name__)
 
 def fetch_response(status_code: int = 200, is_json: bool=True, data: dict = None, message:str = None):
     """ Returns a response message with status code and data"""
@@ -148,3 +152,20 @@ def fetch_response(status_code: int = 200, is_json: bool=True, data: dict = None
 
 def generate_id():
     return str(uuid4())
+
+def fetch_base_url(url: str):
+    """ Returns the base url for the url """
+    try:
+        url_obj = urlparse(url)
+        base_url = f"{url_obj.scheme}://{url_obj.netloc}"
+        logger.debug(f"Base URL : {base_url} - {url}")
+        return base_url
+
+    except Exception as _e:
+        logger.error(f"This is not a URL : {url}")
+        return None
+        
+
+
+
+
