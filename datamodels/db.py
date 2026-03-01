@@ -3,7 +3,8 @@ import logging
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import declarative_base
 from fastapi import Request
-from sqlalchemy import Column, Integer, String, TIMESTAMP, ForeignKey
+from sqlalchemy import (Column, Integer, String, TIMESTAMP, ForeignKey,
+    DECIMAL, Boolean)
 
 logger = logging.getLogger(__name__)
 Base = declarative_base()
@@ -15,6 +16,7 @@ class Users(Base):
     user_name = Column(String(20))
     email = Column(String(50), unique=True)
     created_at = Column(TIMESTAMP)
+    available_credits = Column(DECIMAL, default=1000)
 
 class Credentials(Base):
     __tablename__ = "credentials"
@@ -32,13 +34,15 @@ class Domains(Base):
     domain_base_url = Column(String(100), nullable=False)
     created_at = Column(TIMESTAMP)
     last_updated_at = Column(TIMESTAMP)
+    total_urls = Column(Integer, default=0)
+    is_ready = Column(Boolean, default=False)
 
 class URLs(Base):
     __tablename__ = "urls"
 
     url_id = Column(Integer, primary_key=True, autoincrement=True)
     path = Column(String(100), nullable=False)
-    domain_id = Column(Integer, ForeignKey("domains.domain_id", ondelete="CASCADE"))
+    domain_id = Column(Integer, ForeignKey("domains.domain_id", ondelete="CASCADE"), index=True)
 
 def get_db_session(request: Request):
     """ Returns a db session object """
