@@ -42,7 +42,7 @@ def login_user(session=Depends(get_db_session), credentials: LoginCredentials = 
         "user_email": user_credential.email,
         "reset_key": reset_jwt_key
     }
-    auth_jwt_token = encode_jwt(payload, expires_in=3)
+    auth_jwt_token = encode_jwt(payload, expires_in=3600*3)
     response = RedirectResponse(status_code=303, url="/home")
     response.set_cookie(
         key="skyndle_token",
@@ -131,15 +131,22 @@ def refresh_token(request: Request, session=Depends(get_db_session)):
             # Remove the auth_key to logout the user
             response = JSONResponse(status_code=403, content={"status_code": 403, "message": "Un-Authorized Action"})
             response.delete_cookie(key="skyndle_token")
-
             return response
 
         # If the token is valid -> Check for the validity of the token & grant an extension
         cred = session.query(Credentials).filter(Credentials.email == user_email).first()
 
+        valid_upto = None
         time_now = datetime.utcnow()
-        valid_upto = cred.valid_upto
 
+        if cred and cred.valid_upto:
+            valid_upto = cred.valid_upto
+        else:
+            # Credential entry not found - DB has been cleared
+            response = JSONResponse(status_code=403, content={"status_code": 403, "message": "Un-Authorized Action"})
+            response.delete_cookie(key="skyndle_token")
+            return response
+        
         time_remaining = min(3600 * 3, int((valid_upto - time_now).total_seconds()))
 
         # If the reset_key is valid for more than 10 mins -> Grant an extension
