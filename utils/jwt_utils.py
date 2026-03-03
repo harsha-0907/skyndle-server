@@ -15,10 +15,11 @@ JWT_SECRET_KEY = fetch_key_from_env("jwt_secret_key") or "a-string-secret-at-lea
 def encode_jwt(data_to_encode: dict, expires_in: int = 3600):
     """ Encode a dictionary into a JWT token"""
 
-    time_now = datetime.utcnow()
-    valid_upto = time_now + timedelta(seconds=expires_in)
     payload = data_to_encode.copy()
-    payload["exp"] = valid_upto
+    if expires_in is not None:
+        time_now = datetime.utcnow()
+        valid_upto = time_now + timedelta(seconds=expires_in)
+        payload["exp"] = valid_upto
 
     jwt_token = jwt.encode(payload, JWT_SECRET_KEY, algorithm="HS256")
     return jwt_token
