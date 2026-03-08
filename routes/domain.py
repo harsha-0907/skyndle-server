@@ -1,12 +1,13 @@
 
 import aiofiles
+from utils.jwt_utils import encode_jwt
 from utils.middleware import AuthRoute
-from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi import APIRouter, Depends, Body
 from fastapi.concurrency import run_in_threadpool
-from utils.helper_functions import fetch_base_url
 from datamodels.db import Domains, get_db_session, URLs
-from datamodels.core_models import DomainSearchRequest, NewDomainRequest
+from fastapi.responses import HTMLResponse, JSONResponse
+from utils.helper_functions import fetch_base_url, generate_id, estimate_domain_size
+from datamodels.core_models import DomainSearchRequest, NewDomainRequest, Phase
 
 router = APIRouter(route_class=AuthRoute)   # Protected Endpoint
 

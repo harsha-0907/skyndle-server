@@ -13,8 +13,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting Skyndle server initialization")
     try:
         print("Initializing the Server")
-        var = initialize_server()
-        app.state.var = var
+        initialize_server(app)  # Application directly 
         logger.info("Skyndle server initialized successfully")
 
         yield

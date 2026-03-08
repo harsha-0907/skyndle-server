@@ -1,7 +1,10 @@
 
 import logging
+import requests
 from uuid import uuid4
 from urllib.parse import urlparse
+from datamodels.core_models import DomainSize
+from datamodels.variables import fetch_key_from_env
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 
 logger = logging.getLogger(__name__)
@@ -165,6 +168,48 @@ def fetch_base_url(url: str):
         logger.error(f"This is not a URL : {url}")
         return None
         
+def estimate_domain_size(base_url: str)->DomainSize:
+    """ Query the google domain to approx the number of webpages """
+    def segregate_domain_by_webpages(number_of_pages: int) -> DomainSize:
+        """ Segregate the domain based on the number of pages """
+        if number_of_pages < 100:
+            return DomainSize.MICRO
+        elif number_of_pages < 1_000:
+            return DomainSize.SMALL
+        elif number_of_pages < 10_000:
+            return DomainSize.MEDIUM
+        elif number_of_pages < 100_000:
+            return DomainSize.LARGE
+        elif number_of_pages < 10_00_000:
+            return DomainSize.VERYLARGE
+        else:
+            return DomainSize.EXTREME
+
+    google_search_engine_url = "https://www.googleapis.com/customsearch/v1"
+    domain_name = urlparse(base_url).netloc
+    params = {
+        "cx": fetch_key_from_env("google_cx"),
+        "key": fetch_key_from_env("google_api_key"),
+        "q": f"site:{domain_name}"
+    }
+
+    response = requests.get(url=google_search_engine_url, params=params)
+    if not response or response.status_code != 200:
+        # By default classify as extreme
+        return (DomainSize.EXTREME, 2048)
+
+    # Extract the number of results
+    response_json = response.json()
+    results = response_json.get("queries", {}).get("request", {})
+
+    if len(results) == 0:
+        # Classify it as extreme
+        return DomainSize.EXTREME
+    
+    number_of_results = int(results[0].get("totalResults"))
+    # Assuming a buffer of 25% for un-forseen circumstances
+    return (segregate_domain_by_webpages(number_of_results), round((number_of_results * 1.25) / 4000))
+
 
 
 

@@ -1,7 +1,9 @@
 
 import os
 import logging
+from fastapi import FastAPI
 from datamodels.variables import Variables
+from datamodels.infrastructure import Infrastructure
 from sqlalchemy import create_engine
 from datamodels.db import Base
 
@@ -26,14 +28,16 @@ def initialize_logger(var: Variables):
     logging.basicConfig(format=log_format, level=logging.DEBUG, filename=log_path, filemode='w')
     return True
 
-def initialize_server():
+def initialize_server(app: FastAPI):
     """ Initialize the Server & all variables"""
 
     var = Variables()
+    infra = Infrastructure()
     initialize_logger(var)  # initialize logge
     initialize_db(var)   #intialize db
     logger.info("Server Initialized")
-    return var
+    app.state.var = var
+    app.state.infra = infra
 
 
 # Shutdown Functions
